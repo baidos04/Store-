@@ -8,7 +8,6 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.end_headers()
 
-
         products = [
             {"id": 1, "name": "Xiaomi Redmi Note 12"},
             {"id": 2, "name": "Samsung Galaxy S21"},
@@ -46,10 +45,7 @@ class MyHandler(BaseHTTPRequestHandler):
             "SOFTECH.KG": store_list
         }
 
-
         json_data = json.dumps(store_dict, indent=4)
-
-
         self.wfile.write(json_data.encode())
 
 
