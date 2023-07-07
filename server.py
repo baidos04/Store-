@@ -1,4 +1,5 @@
 import requests
+import json
 
 API_URL = "https://test-docs.stores.kg/api"
 API_TOKEN = "api-token: 00e82b9c923ba5851821bc8215004d26"
@@ -44,10 +45,9 @@ def sort_products_by_name(products):
     return sorted_products
 
 def process_products(products):
-    for product in products:
-        product_id = product["id"]
-        product_name = product["name"]
-        print(f"Product ID: {product_id}, Name: {product_name}")
+    json_data = json.dumps(products, indent=4)
+    print(json_data)
+
 
 make_api_request()
 
