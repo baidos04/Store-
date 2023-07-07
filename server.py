@@ -1,58 +1,65 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import json
+import requests
 
-class MyHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
+API_URL = "https://test-docs.stores.kg/api"
+API_TOKEN = "api-token: 00e82b9c923ba5851821bc8215004d26"
 
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
+SOFTECH = [
+    {"name": "Xiaomi Redmi Note 10", "id": 1},
+    {"name": "Samsung Galaxy S21", "id": 2},
+    {"name": "iPhone 12 Pro", "id": 3},
+]
 
-        products = [
-            {"id": 1, "name": "Xiaomi Redmi Note 12"},
-            {"id": 2, "name": "Samsung Galaxy S21"},
-            {"id": 3, "name": "iPhone 12 Pro"},
-            {"id": 4, "name": "Google Pixel 5"},
-            {"id": 5, "name": "OnePlus 9 Pro"},
-            {"id": 6, "name": "Xiaomi Mi 11"},
-            {"id": 7, "name": "Samsung Galaxy A52"},
-            {"id": 8, "name": "iPhone SE"},
-            {"id": 9, "name": "Google Pixel 4a"},
-            {"id": 10, "name": "OnePlus Nord"}
-        ]
+def make_api_request():
+    headers = {
+        "api-token": API_TOKEN,
+    }
 
-
-        sorted_products = sorted(products, key=lambda x: x["name"])
-
-
-        grouped_products = {}
-        for product in sorted_products:
-            name = product['name']
-            if name not in grouped_products:
-                grouped_products[name] = []
-            grouped_products[name].append(product)
-
-
-        store_list = []
-        for group_name, group_items in grouped_products.items():
-            store_list.append({
-                "id": group_items[0]["id"],
-                "name": group_items[0]["name"]
-            })
-
-
-        store_dict = {
-            "SOFTECH.KG": store_list
+    for phone in SOFTECH:
+        params = {
+            "page": 1,
+            "itemsPerPage": 30,
+            "order[price]": "asc",
+            "name": phone["name"],
+            "point.id": phone["id"]
         }
 
-        json_data = json.dumps(store_dict, indent=4)
-        self.wfile.write(json_data.encode())
+        try:
+            response = requests.get(API_URL, headers=headers, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+
+            if "hydra:member" in data:
+                products = data["hydra:member"]
+                sorted_products = sort_products_by_name(products)
+                process_products(sorted_products)
+            else:
+                print("Отсутствуют продукты в ответе API.")
+
+        except requests.exceptions.RequestException as e:
+            print("Ошибка при выполнении запроса:", str(e))
+
+def sort_products_by_name(products):
+    sorted_products = sorted(products, key=lambda p: p["name"])
+    return sorted_products
+
+def process_products(products):
+    for product in products:
+        product_id = product["id"]
+        product_name = product["name"]
+        print(f"Product ID: {product_id}, Name: {product_name}")
+
+make_api_request()
 
 
-server_address = ('', 8000)
-httpd = HTTPServer(server_address, MyHandler)
-print('Сервер запущен на порту 8000...')
-httpd.serve_forever()
+
+
+
+
+
+
+
+
 
 
 
